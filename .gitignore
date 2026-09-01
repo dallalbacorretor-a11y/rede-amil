@@ -1,0 +1,7 @@
+# nada de banco, log ou material bruto neste repositorio - so o site
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.xlsx
+*.pdf
