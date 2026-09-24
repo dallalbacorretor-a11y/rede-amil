@@ -2303,9 +2303,16 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
      PNG, JPEG ou SVG). O PDF recebe JPEG: o canvas converte uma vez, sobre
      fundo branco - o logo so aparece em cartao branco ou no rodape claro. */
   (function prepararLogo() {
-    var fonte = global.LOGO_OPERADORA;
-    if (!fonte || !global.document) return;
+    if (!global.document) return;
+    /* Sem logo embutido, procura o arquivo ao lado da pagina: basta subir
+       logo-amil.png (ou .svg / .jpg) no repositorio. */
+    var fontes = global.LOGO_OPERADORA ? [global.LOGO_OPERADORA]
+               : ["logo-amil.png", "logo-amil.svg", "logo-amil.jpg"];
     var img = new Image();
+    img.onerror = function () {
+      fontes.shift();
+      if (fontes.length) img.src = fontes[0];
+    };
     img.onload = function () {
       try {
         var alt = 180, larg = Math.round(alt * img.naturalWidth / img.naturalHeight);
@@ -2320,7 +2327,7 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
         global.LOGO_OPERADORA_PDF = { jpeg: bytes, l: larg, a: alt };
       } catch (e) { /* sem logo: o PDF sai sem ele */ }
     };
-    img.src = fonte;
+    img.src = fontes[0];
   })();
 
   global.Relatorio = Relatorio;
