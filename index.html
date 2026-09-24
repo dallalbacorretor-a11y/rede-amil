@@ -1178,6 +1178,18 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
 #doc tbody tr:hover td{background:#fff}
 #doc tbody tr:nth-child(even) td,#doc tbody tr:nth-child(even):hover td{background:#f7f9fc}
 #doc .capa .rodape{display:block; padding:0 0 5mm; font-size:7.5pt}
+/* --- paisagem (A4 deitado) --- */
+@page{size:A4 landscape; margin:11mm 11mm 14mm}
+#doc .capa{height:175mm; padding:15mm 20mm 12mm}
+#doc .capa h1{font-size:40pt}
+#doc .capa .fio{margin:4mm 0 7mm}
+#doc .capa .praca{margin-top:8mm}
+#doc .capa .placar{gap:6mm 10mm}
+#doc .capa .placar div{min-width:34mm}
+#doc .cartoes .cartao{flex:1 1 70mm}
+#doc td.end{font:400 9pt/1.45 var(--sans); color:#3c4a5c}
+#doc td.tel{font:400 9pt/1.45 var(--sans); color:#3c4a5c}
+#doc td.bairro{width:32mm}
 /* --- o que a Amil tem a mais --- */
 /* faixa da capa com as cores dos produtos do documento */
 #doc .capa::after{display:none}
@@ -2785,6 +2797,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
      Os dois materiais da Mazza ficam identicos; aqui entram endereco e
      telefone embaixo do nome, que a base da Amil tem. */
 
+  /* Paisagem: endereco e telefone ganham coluna propria. */
+  var PDF_PAISAGEM = true;
+
   var MINUSCULAS_DOC = { da: 1, das: 1, de: 1, di: 1, do: 1, dos: 1, e: 1, em: 1,
                          na: 1, nas: 1, no: 1, nos: 1, ou: 1, para: 1, por: 1 };
   var SIGLAS_DOC = { BR: 1, PR: 1, SC: 1, SP: 1, RS: 1, TEA: 1, ATM: 1, UTI: 1,
@@ -2886,6 +2901,27 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
     if (p.s && p.s.length) h += ' <i class="acred">' + esc(p.s.join(" · ")) + "</i>";
     var sub = [];
     var end = (p.e || []).slice(0, 2).map(textoBonito).join(" | ");
+    if (PDF_PAISAGEM) {
+      var tels = (p.t || []).slice(0, 2).map(function (t) {
+        return '<span class="fone">' + esc(t) + "</span>";
+      }).join("<br>");
+      if (comEsp && p.esp && p.esp.length) {
+        var e2 = p.esp.map(especialidadeBonita);
+        h += "<small>" + esc(e2.slice(0, 15).join(" · ")) +
+             (e2.length > 15 ? " <i>e mais " + (e2.length - 15) + "</i>" : "") + "</small>";
+      }
+      h += '</td><td class="end">' + esc(end || "—") + '</td><td class="tel">' + (tels || "—") + "</td>";
+      var cidP = (p.cr && p.cr.length) ? p.cr : (p.cid || []);
+      h += '<td class="bairro">' + esc((p.b || []).slice(0, 2).join(" · ") || "—") +
+           (cidP.length ? "<span>" + esc(textoBonito(cidP.slice(0, 2).join(" / "))) + "</span>" : "") + "</td>";
+      var meusP = p.meus || produtosDe(p);
+      produtos.forEach(function (pr) {
+        h += meusP.indexOf(pr.codigo) >= 0
+          ? '<td class="pl" style="color:' + corDoProduto(pr) + '">&#10003;</td>'
+          : '<td class="pl nao">&ndash;</td>';
+      });
+      return h + "</tr>";
+    }
     // telefone nao quebra no meio do numero
     var tel = (p.t || []).slice(0, 2).map(function (t) {
       return '<span class="fone">' + esc(t) + "</span>";
@@ -2918,11 +2954,13 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   /* Um bloco por categoria: titulo com a contagem e a tabela. */
   function blocoDoc(nome, itens, produtos, comEsp) {
     if (!itens.length) return "";
-    var larg = Math.min(16, Math.floor(96 / produtos.length));
+    var larg = Math.min(18, Math.floor((PDF_PAISAGEM ? 110 : 96) / produtos.length));
     var h = '<section class="bloco"><h2>' + esc(nome) + "<span>" + itens.length +
             (itens.length === 1 ? " prestador" : " prestadores") + "</span></h2>" +
             '<table><thead><tr><th class="esq">Prestador</th>' +
-            '<th class="esq" style="width:27mm">Bairro</th>';
+            (PDF_PAISAGEM ? '<th class="esq" style="width:62mm">Endereço</th>' +
+                            '<th class="esq" style="width:31mm">Telefone</th>' : "") +
+            '<th class="esq" style="width:32mm">Bairro</th>';
     produtos.forEach(function (pr) {
       h += '<th style="width:' + larg + "mm;background:" + corDoProduto(pr) + '">' +
            esc(rotuloProduto(pr)) + "</th>";
@@ -3034,7 +3072,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
       "atende quem tem esse plano. Enfermaria e apartamento (QC e QP) usam a mesma rede.</p></div>" +
       '<div class="cartao"><h3>Como a rede está organizada</h3><p>Cada bloco é um tipo de ' +
       "atendimento: <b>hospitais</b>, <b>pronto-socorro</b>, <b>exames</b> e <b>clínicas e " +
-      "consultórios</b>. Sob o nome vêm <b>endereço</b>, <b>telefone</b> e as especialidades; " +
+      "consultórios</b>. " + (PDF_PAISAGEM
+        ? "<b>Endereço</b> e <b>telefone</b> têm coluna própria; sob o nome vêm as especialidades. "
+        : "Sob o nome vêm <b>endereço</b>, <b>telefone</b> e as especialidades; ") +
       "a coluna de bairro diz também a cidade.</p></div>" +
       '<div class="cartao"><h3>De onde vêm os dados</h3><p><b>Busca avançada oficial da Amil</b>, ' +
       "produto por produto e cidade por cidade, base de " + esc(D.gerado_em) + ". A linha de " +
