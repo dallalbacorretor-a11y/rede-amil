@@ -1180,6 +1180,10 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
 #doc .capa .rodape{display:block; padding:0 0 5mm; font-size:7.5pt}
 /* --- paisagem (A4 deitado) --- */
 @page{size:A4 landscape; margin:11mm 11mm 14mm}
+/* o rodape e fixo no pe de toda pagina; o tfoot vazio se repete em cada
+   pedaco da tabela e guarda o lugar dele - sem isso ele cobria a ultima linha */
+#doc tfoot{display:table-footer-group}
+#doc tfoot td{height:7mm; padding:0; border:0; background:#fff!important}
 #doc .capa{height:175mm; padding:15mm 20mm 12mm}
 #doc .capa h1{font-size:40pt}
 #doc .capa .fio{margin:4mm 0 7mm}
@@ -1190,6 +1194,19 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
 #doc td.end{font:400 9pt/1.45 var(--sans); color:#3c4a5c}
 #doc td.tel{font:400 9pt/1.45 var(--sans); color:#3c4a5c}
 #doc td.bairro{width:32mm}
+/* compacto: letra e respiro menores, especialidades numa linha - o mesmo
+   PDF de Curitiba caiu de 90 para ~48 paginas */
+#doc tbody td{padding:1.6mm 1.6mm}
+#doc td.nome{font-size:9pt}
+#doc td.nome small{font-size:7.8pt; line-height:1.35; margin-top:.5mm;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#doc td.end,#doc td.tel{font-size:8pt; line-height:1.3}
+#doc td.bairro{font-size:7.5pt}
+#doc td.pl{font-size:11pt}
+#doc thead th{padding:1.6mm 1mm}
+#doc .bloco{padding-bottom:3mm}
+#doc .bloco + .bloco{margin-top:5mm}
+#doc .bloco h2{font-size:15pt; padding-bottom:1.5mm}
 /* --- o que a Amil tem a mais --- */
 /* faixa da capa com as cores dos produtos do documento */
 #doc .capa::after{display:none}
@@ -2906,9 +2923,15 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
         return '<span class="fone">' + esc(t) + "</span>";
       }).join("<br>");
       if (comEsp && p.esp && p.esp.length) {
-        var e2 = p.esp.map(especialidadeBonita);
-        h += "<small>" + esc(e2.slice(0, 15).join(" · ")) +
-             (e2.length > 15 ? " <i>e mais " + (e2.length - 15) + "</i>" : "") + "</small>";
+        // uma linha so: o que couber em ~105 caracteres, o resto vira "e mais N"
+        var e2 = p.esp.map(especialidadeBonita), cabe = [], tam = 0;
+        for (var k = 0; k < e2.length; k++) {
+          if (cabe.length && tam + e2[k].length + 3 > 105) break;
+          cabe.push(e2[k]); tam += e2[k].length + 3;
+        }
+        h += "<small>" + esc(cabe.join(" · ")) +
+             (e2.length > cabe.length ? " <i>e mais " + (e2.length - cabe.length) + "</i>" : "") +
+             "</small>";
       }
       h += '</td><td class="end">' + esc(end || "—") + '</td><td class="tel">' + (tels || "—") + "</td>";
       var cidP = (p.cr && p.cr.length) ? p.cr : (p.cid || []);
@@ -2967,7 +2990,8 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
     });
     h += "</tr></thead><tbody>";
     itens.forEach(function (p) { h += linhaDoc(p, produtos, comEsp); });
-    return h + "</tbody></table></section>";
+    return h + '</tbody><tfoot><tr><td colspan="' + (produtos.length + (PDF_PAISAGEM ? 4 : 2)) +
+           '"></td></tr></tfoot></table></section>';
   }
 
   /* Prestadores da cidade principal primeiro, depois os da regiao. */
