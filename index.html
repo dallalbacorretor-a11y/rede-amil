@@ -1265,6 +1265,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
      amplo monta 27 mil células e a página congela por segundos - o CSV e o
      PDF continuam usando a lista COMPLETA, o teto é só do que aparece. */
   var POR_VEZ = 200;
+  /* A busca abre nos hospitais, como nas paginas da Bradesco e da
+     SulAmerica; "Todas" na categoria mostra o resto. */
+  var CAT_INICIAL = "Hospitais";
   var estado = { produtos: {}, modo: "ou", perto: null, teto: POR_VEZ,
                  f: { cid: {}, cidr: {}, cat: {}, esp: {}, bairro: {} },
                  aberto: null };
@@ -2323,7 +2326,10 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   }
 
   function montarPanorama() {
-    var lista = filtrar();
+    /* a visao geral ja abre por categoria (hospitais, exames, consultorios):
+       o filtro de categoria da Rede completa - que comeca em Hospitais - nao
+       entra aqui, senao o resumo nasceria so com hospitais */
+    var lista = filtrar("cat");
     var praças = escolhidos("cidr");
     var cidades = cidadesComRede(lista);
 
@@ -2399,13 +2405,14 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   /* Base da comparacao: tudo que passa nos filtros de lugar, IGNORANDO a
      selecao de produtos - aqui quem define o recorte sao os dois planos
      escolhidos, nao as fichas marcadas na outra aba. */
-  function baseEntre() {
+  function baseEntre(ignorar) {
     var q = semAcento($("q").value.trim());
     return D.prestadores.filter(function (p) {
       if (temEscolha("cid") && !algum(p.cid, estado.f.cid)) return false;
       if (temEscolha("cidr") && !algum(p.cr && p.cr.length ? p.cr : p.cid,
                                        estado.f.cidr)) return false;
-      if (temEscolha("cat") && !algum(catsDe(p), estado.f.cat)) return false;
+      if (ignorar !== "cat" && temEscolha("cat") &&
+          !algum(catsDe(p), estado.f.cat)) return false;
       if (temEscolha("esp") && !algum(p.esp, estado.f.esp)) return false;
       if (temEscolha("bairro") && !algum(p.b, estado.f.bairro)) return false;
       if (q && semAcento(p.n).indexOf(q) < 0 && (p.c || "").indexOf(q) < 0) {
@@ -2424,7 +2431,8 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   }
 
   function compararPlanos(codA, codB) {
-    var base = baseEntre();
+    // a comparacao separa hospitais do resto sozinha: categoria nao recorta
+    var base = baseEntre("cat");
     var noA = base.filter(function (p) { return produtosDe(p).indexOf(codA) >= 0; });
     var noB = base.filter(function (p) { return produtosDe(p).indexOf(codB) >= 0; });
     var emB = {};
@@ -3002,6 +3010,7 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   function limparTudo() {
     $("q").value = "";
     estado.f = { cid: {}, cidr: {}, cat: {}, esp: {}, bairro: {} };
+    if (D.categorias.indexOf(CAT_INICIAL) >= 0) estado.f.cat[CAT_INICIAL] = 1;
     estado.produtos = {};
     estado.perto = null;
     estado.teto = POR_VEZ;
