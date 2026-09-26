@@ -1058,9 +1058,10 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
 </div>
 
 <nav class="abas" id="abas" aria-label="Seções">
-  <button type="button" class="aba ativa" data-aba="panorama">Visão geral</button>
+  <!-- abre na busca (Rede completa, em Hospitais), como as paginas da Bradesco e da SulAmerica -->
+  <button type="button" class="aba ativa" data-aba="rede">Rede completa</button>
+  <button type="button" class="aba" data-aba="panorama">Visão geral</button>
   <button type="button" class="aba" data-aba="entre">Entre planos</button>
-  <button type="button" class="aba" data-aba="rede">Rede completa</button>
 </nav>
 
 <section class="entre" id="entre" hidden>
@@ -1082,7 +1083,7 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
   <div class="entre-corpo" id="entreCorpo"></div>
 </section>
 
-<section class="panorama" id="panorama">
+<section class="panorama" id="panorama" hidden>
   <div class="pan-topo">
     <div class="pan-numeros" id="panNumeros"></div>
     <p class="pan-nota" id="panNota"></p>
@@ -1122,7 +1123,7 @@ tr.mais span{color:var(--tinta-fraca);font-size:12px;margin-right:12px}
   <div class="pan-legenda-linhas" id="legendaLinhas"></div>
 </section>
 
-<div class="rede" id="rede" hidden>
+<div class="rede" id="rede">
 <div class="painel">
   <div class="linha-campos">
     <div class="campo"><label for="q">Prestador ou CNPJ</label>
