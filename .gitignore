@@ -5,3 +5,5 @@
 *.log
 *.xlsx
 *.pdf
+ferramentas/.cache/
+__pycache__/
