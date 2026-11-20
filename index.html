@@ -2608,7 +2608,11 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
 
   /* O link e compartilhado entre corretores e cada um assina o proprio
      material. Fica no navegador de quem usa: nunca sai da maquina dele. */
-  var CHAVE_CORRETOR = "mazza.corretor.v1";
+  /* Todos os sites em dallalbacorretor-a11y.github.io dividem o mesmo
+     localStorage: a chave leva o prefixo deste site. A antiga, generica, so
+     e lida uma vez, para nao perder o que o corretor ja tinha salvo. */
+  var CHAVE_CORRETOR = "mzb_amil_corretor_v1";
+  var CHAVE_ANTIGA = "mazza.corretor.v1";
   /* A marca do material nao e configuravel: o corretor assina com o
      contato dele, a corretora continua sendo a dona do material. */
   var CORRETORA_FIXA = "Mazza Broker";
@@ -2623,6 +2627,10 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   function lerCorretor() {
     try {
       var cru = localStorage.getItem(CHAVE_CORRETOR);
+      if (cru === null) {               // primeira vez com a chave nova
+        cru = localStorage.getItem(CHAVE_ANTIGA);
+        if (cru) localStorage.setItem(CHAVE_CORRETOR, cru);
+      }
       if (cru) {
         var d = JSON.parse(cru);
         if (d && d.nome) {
@@ -3182,7 +3190,8 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
            esc(corretor.nome || corretor.corretora) + "</b>.");
   };
   $("restaurarCorretor").onclick = function () {
-    try { localStorage.removeItem(CHAVE_CORRETOR); } catch (e) {}
+    // "{}" (e nao remover) para a chave antiga nao voltar na proxima visita
+    try { localStorage.setItem(CHAVE_CORRETOR, "{}"); } catch (e) {}
     corretor = corretorPadrao();
     pintarCorretor();
     abrirCorretor();
