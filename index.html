@@ -1917,9 +1917,13 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
     $("dicaModo").textContent = temProduto
       ? "Mostrando só as colunas dos produtos marcados."
       : "Sem seleção, a tabela mostra todos os produtos.";
-    // o PDF depende de um produto marcado: o botao diz isso sozinho
-    $("pdf").classList.toggle("esperando", !temProduto);
-    $("pdf").textContent = temProduto ? "Gerar PDF" : "Gerar PDF — escolha um produto";
+    // o PDF depende de um produto marcado (e de no maximo MAX_COLUNAS_PDF):
+    // o botao diz isso sozinho
+    var demais = temProduto > MAX_COLUNAS_PDF;
+    $("pdf").classList.toggle("esperando", !temProduto || demais);
+    $("pdf").textContent = !temProduto ? "Gerar PDF — escolha um produto"
+      : demais ? "Gerar PDF — até " + MAX_COLUNAS_PDF + " produtos"
+      : "Gerar PDF";
 
     if (!$("panorama").hidden) montarPanorama();
     $("nada").hidden = r.length > 0;
@@ -2129,7 +2133,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
   /* Com UM produto marcado o PDF sai detalhado (com especialidades). Com
      VARIOS ele vira comparativo: uma coluna de visto por produto, no lugar
      das especialidades - nao ha largura para os dois. */
-  var MAX_COLUNAS_PDF = 8;
+  /* Acima de 5 a coluna do prestador espreme: com 8, o nome quebra palavra
+     por palavra e cabem 3 prestadores por pagina. */
+  var MAX_COLUNAS_PDF = 5;
 
   function produtosEscolhidos() {
     var sel = selecionados();
@@ -2925,9 +2931,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
       return;
     }
     if (produtos.length > MAX_COLUNAS_PDF) {
-      avisar("<b>" + produtos.length + " produtos não cabem na página.</b> " +
-             "O PDF aceita até " + MAX_COLUNAS_PDF +
-             " colunas — desmarque alguns e gere de novo.", true);
+      avisar("<b>Escolha até " + MAX_COLUNAS_PDF + " produtos para o PDF.</b> " +
+             "Com " + produtos.length + " marcados as colunas não cabem na " +
+             "página e o PDF fica ilegível — desmarque alguns e gere de novo.", true);
       return;
     }
     entregar($("pdf"), function () { return documentoRede(produtos); });
