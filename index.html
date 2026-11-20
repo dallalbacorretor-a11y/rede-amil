@@ -2038,7 +2038,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
     entregaPronta = "navegador";
   }
 
-  function entregar(nome, texto) {
+  /* Nome proprio: o PDF tem a sua entregar(botao, doc) mais abaixo e, com o
+     mesmo nome, a segunda declaracao apagava esta e o CSV quebrava. */
+  function entregarCsv(nome, texto) {
     salvar(nome, texto, "text/csv;charset=utf-8");
   }
 
@@ -2096,7 +2098,7 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
         .map(asp).join(";");
     });
     var csv = "﻿" + [cab.map(asp).join(";")].concat(linhas).join("\r\n");
-    entregar("rede-amil-pr-" + apelidoCidade().toLowerCase()
+    entregarCsv("rede-amil-pr-" + apelidoCidade().toLowerCase()
       .replace(/\s+/g, "-") + ".csv", csv);
   }
 
