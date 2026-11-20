@@ -2098,7 +2098,9 @@ window.CORRETOR={"nome": "Alan Vinicius Dall Alba", "corretora": "Mazza Broker",
         .map(asp).join(";");
     });
     var csv = "﻿" + [cab.map(asp).join(";")].concat(linhas).join("\r\n");
-    entregarCsv("rede-amil-pr-" + apelidoCidade().toLowerCase()
+    // UF do estado na tela (era "pr" fixo); sem acento, como o nome do PDF
+    entregarCsv(("rede-amil-" + (D.uf || "") + "-" + apelidoCidade()).toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
       .replace(/\s+/g, "-") + ".csv", csv);
   }
 
